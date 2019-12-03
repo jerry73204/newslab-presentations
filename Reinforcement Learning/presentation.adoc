@@ -1,0 +1,336 @@
+= 強化學習簡介
+:Author: 林祥瑞
+:revealjs_theme: black
+
+== 參考文獻
+
+本文參考下列文章整理所得
+
+link:https://lilianweng.github.io/lil-log/2018/02/19/a-long-peek-into-reinforcement-learning.html[A (Long) Peek into Reinforcement Learning] - Lilian Weng
+
+== 強化學習要解決什麼問題？
+
+[ditaa, "diagram/agent_env"]
+....
+
++-+---+-+   state / action   +-----+
+|       |------------------->|     |
+| agent |                    | env |
+|       |<-------------------|     |
++-------+ new state / reward +-----+
+....
+
+* 需要 *玩家* 和 *環境* 兩個基本要素
+  - 例：圍棋、洛克人、機械手臂
+* 玩家的目標是在探索環境的過程中，將利益最大化
+
+=== 公理化問題
+
+[ditaa, "diagram/rl-formulation"]
+....
+
++-+---+-+       s / a        +-----+
+|       |------------------->|     |
+| agent |                    | env |
+|       |<-------------------|     |
++-------+      s' / r        +-----+
+....
+
+* 三要素：狀態 stem:[s \in \mathcal{S}]、操作 stem:[a \in \mathcal{A}]、報酬 stem:[r]
+* 玩家觀察現在的狀態 stem:[s] 選擇適當的操作 stem:[a]，環境根據玩家的決策 stem:[(s, a)] 轉移到新環境 stem:[s']，並賦予報酬 stem:[r]。
+
+=== 公理化問題
+
+* 記錄操作和狀態的序列可得 stem:[s_1, a_1, r_1, s_2, a_2, r_2, \cdots, s_T]，一組 stem:[(s_t, a_t, r_t, s_{t+1})] 稱爲一個 episode。
+* 強化學習演算法是這三種工具的組合：策略 stem:[\pi]、模型 stem:[P_{s,s'}^a]、價值或長期報酬 stem:[V]
+
+== 環境建模
+
+* 我們將環境轉移機率記爲 stem:[P_{s,s'}^a = \mathbb{P} [S_{t+1} = s' | S_t = s, A_t = a]]
+* 依賴環境建模來學習的演算法稱爲 model-based，無論這個模型已知或是學來的；反之稱爲 model-free。
+
+=== 玩家策略
+
+* 策略（policy）記爲 stem:[\pi]，分成兩類
+  - 確定策略 stem:[a = \pi(s)]
+  - 隨機策略 stem:[\pi(a|s) = \mathbb{P}[A = a | S = s]]
+* 如果演算法會維護一個策略模型（target policy），過程中使用這策略來生成訓練樣本，稱爲 on-policy；反之，僅依賴環境的轉移的機率分佈的方法稱爲 off-policy。
+
+=== 價值函數
+
+* 我們希望玩家可以取得長期報酬，我們定義爲衰減報酬和，設置衰減係數是爲了避免無窮和
+
+[stem]
+++++
+\begin{aligned}
+G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \cdots \\
+= \sum_{k \ge 1} \gamma^k R_{t+k}
+\end{aligned}
+++++
+
+* 我們可以計算這個策略 stem:[\pi] 下，每個狀態的平均長期報酬，稱爲 *state-value*
+
+[stem]
+++++
+V_\pi (s) = \mathbb{E}_\pi [ G_t | S_t = s, A_t = a ]
+++++
+
+
+=== 價值函數
+
+* 同樣的想法，我們也可以計算特定狀態操作組合的平均長期報酬，稱爲 *action-value*
+
+[stem]
+++++
+Q_\pi (s, a) = \mathbb{E}_\pi [ G_t | S_t = s, A_t = a ]
+++++
+
+* 我們可以組合 state-value 和 action-value 的關係
+
+[stem]
+++++
+V_\pi(s) = \sum_{a \in \mathcal{A}} Q_\pi (s, a) \pi(a | s)
+++++
+
+=== 演算法分類
+
+image:https://lilianweng.github.io/lil-log/assets/images/RL_algorithm_categorization.png[rl algorithm categories]
+
+
+== Bellman Equation
+
+在 Markov 的假設下，重寫 state-value 成遞迴關係
+
+[stem]
+++++
+\begin{aligned}
+V(s) = \mathbb{E} [G_t | S_t = s] \\
+= \mathbb{E} [R_{t+1} + \gamma R_{t+2} + \gamma^3 R_{t+3} + \cdots | S_t = s] \\
+= \mathbb{E} [R_{t+1} + \gamma V(S_{t+1}) | S_t = s ]
+\end{aligned}
+++++
+
+同樣 action-value 也有遞迴關係
+
+[stem]
+++++
+\begin{aligned}
+Q(s, a) = \\
+\mathbb{E} [ R_{t+1} + \gamma Q(S_{t+1}, A_{t+1})  | S_t = s, A_t = a ]
+\end{aligned}
+++++
+
+=== Bellman Equation
+
+image:https://lilianweng.github.io/lil-log/assets/images/bellman_equation.png[Recursive relation]
+
+=== 特定策略 stem:[\pi] 下的期望值
+
+[stem]
+++++
+\begin{aligned}
+V_{\pi}(s) &= \sum_{a \in \mathcal{A}} \pi(a \vert s) Q_{\pi}(s, a) \\
+Q_{\pi}(s, a) &= R(s, a) + \gamma \sum_{s' \in \mathcal{S}} P_{ss'}^a V_{\pi} (s') \\
+V_{\pi}(s) &= \sum_{a \in \mathcal{A}} \pi(a \vert s) \big( R(s, a) + \gamma \sum_{s' \in \mathcal{S}} P_{ss'}^a V_{\pi} (s') \big) \\
+Q_{\pi}(s, a) &= R(s, a) + \gamma \sum_{s' \in \mathcal{S}} P_{ss'}^a \sum_{a' \in \mathcal{A}} \pi(a' \vert s') Q_{\pi} (s', a')
+\end{aligned}
+++++
+
+=== Bellman 最佳條件
+
+[stem]
+++++
+\begin{aligned}
+V_*(s) &= \max_{a \in \mathcal{A}} Q_*(s,a)\\
+Q_*(s, a) &= R(s, a) + \gamma \sum_{s' \in \mathcal{S}} P_{ss'}^a V_*(s') \\
+V_*(s) &= \max_{a \in \mathcal{A}} \big( R(s, a) + \gamma \sum_{s' \in \mathcal{S}} P_{ss'}^a V_*(s') \big) \\
+Q_*(s, a) &= R(s, a) + \gamma \sum_{s' \in \mathcal{S}} P_{ss'}^a \max_{a' \in \mathcal{A}} Q_*(s', a')
+\end{aligned}
+++++
+
+== 強化學習演算法
+
+* 動態規劃
+* 蒙地卡羅法
+* Temporal-difference learning
+* Policy gradient
+* 上述的合體
+
+== 動態規劃法
+
+* 適合狀態空間 stem:[\mathcal{S}] 和策略空間 stem:[\mathcal{A}] 是離散且有限的情境
+* 分成兩步驟：Policy Evaluation 和 Policy Improvement
+
+=== 動態規劃法
+
+* Policy Evaluation：用已知的策略計算每個狀態的價值
+
+[stem]
+++++
+V_{t+1}(s) = \mathbb{E}_\pi [r + \gamma V_t(s) | S_t = s]
+++++
+
+* Policy Improvement：用狀態價值計算更加策略
+
+[stem]
+++++
+Q_\pi(s, a)  = \mathbb{E} [R_{t+1} + \gamma V_\pi(S_{t+1}) \vert S_t=s, A_t=a]
+++++
+
+* 將 policy evaluation 和 policy improvement 交錯執行可以逼近最佳策略 stem:[\pi_*]
+
+== 蒙地卡羅法
+
+* 蒙地卡羅法不針對環境建模，而是對過去的經驗抽樣，去逼近期望報酬。
+* 做法和動態規劃類似，分成 evaluation 和 improvement 兩個步驟。
+
+=== 蒙地卡羅法
+
+* 用已知的策略 stem:[\pi] 遍歷可能的狀態，並更新期望價值 stem:[V(s) = \frac{\sum_{t=1}^T \mathbb{1} [S_t = s\] G_t}{\sum_{t=1}^T \mathbb{1} [S_t = s\]}] 、 stem:[Q(s, a) = \frac{\sum_{t=1}^T \mathbb{1}[S_t = s, A_t = a\] G_t}{\sum_{t=1}^T \mathbb{1}[S_t = s, A_t = a\]}]
+* 更新策略 stem:[\pi(s) = \arg\max_{a \in \mathcal{A}} Q(s, a)]
+* 重複上述的步驟，另外，遍歷時通常會搭配 ε-greedy 避免走進死胡同。
+
+
+== Temporal-Difference
+
+* TD 法是一種 model-free 的演算法，不像蒙地卡羅法那樣需要遍歷所有的狀態，是現代大多數深度強化學習演算法的基礎
+* 其想法是不斷改進現有的價值評估，稱爲 bootstrapping
+
+=== Temporal-Difference
+
+[stem]
+++++
+\begin{aligned}
+V(s_t) &\leftarrow (1- \alpha) V(s_t) + \alpha G_t \\
+V(s_t) &\leftarrow V(s_t) + \alpha (G_t - V(s_t)) \\
+V(s_t) &\leftarrow V(s_t) + \alpha (r_{t+1} + \gamma V(s_{t+1}) - V(s_t)) \\
+Q(s_t, a_t) &\leftarrow Q(s_t, a_t) + \\
+& \alpha (r_{t+1} + \gamma Q(s_{t+1}, a_{t+1}) - Q(s_t, a_t))
+\end{aligned}
+++++
+
+=== 基於 TD 的演算法
+
+* on-policy: SARSA
+* off-policy: Q-learning
+* 兩者的做法幾乎是一樣的
+
+=== SARSA / Q-learning 演算法
+
+1. 從現有的狀態 stem:[s_t] 及 stem:[Q] 值得推算操作 stem:[a_t = \arg \max_{a \in \mathcal{A}} Q (s_t, a)]，通常會搭配 ε-greedy 使用。
+2. 進行狀態轉移 stem:[(s_t, a_t) \rightarrow (s_{t+1}, r_{t+1})]
+3. 再新狀態選擇操作 stem:[a_{t+1}]，更新價值評估 stem:[Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \\ \alpha (r_{t+1} + \gamma  Q(s_{t+1}, a_{t+1}) - Q(s_t, a_t))]
+4. 重複上述操作
+
+=== SARSA vs. Q-learning
+
+* 兩者的差別在於第三部操作 stem:[a_{t+1}] 的的選擇方式
+* Q-learning 總是使用使用固定的方式選擇 stem:[a_{t+1}]，例如 stem:[a_{t+1} = \arg \max_{a \in \mathcal{A}} Q(s_{t+1}, a_{t+1})] 或搭配 ε-greedy policy
+* 在 greedy policy 情況，兩者是一樣的 stem:[a_{t+1} = \arg \max_{a \in \mathcal{A}} Q(s_{t+1}, a_{t+1})]
+* SARSA 則計算期望值 stem:[\mathbb{E}_\pi Q(s_t, a_t)]
+
+=== SARSA vs. Q-learning
+
+image:https://lilianweng.github.io/lil-log/assets/images/sarsa_vs_q_learning.png[SARSA vs. Q-learning]
+
+=== Deep Q-Network
+
+* 由於 Q-learning / SARSA 需要對狀態空間建表，在若連續狀態空間應用上有瓶頸
+* DeepMind 提出的解決方法：將 stem:[Q(s, a)] 從表格換成深度學習網路，論文 link:https://storage.googleapis.com/deepmind-media/dqn/DQNNaturePaper.pdf[見此]。
+* 更新方式改爲訓練這個損失值
+
+[stem]
+++++
+\mathcal{L}(\theta) = \\
+\mathbb{E}_{(s, a, r, s') \sim U(D)} \Big[ \big( r + \gamma \max_{a'} Q(s', a'; \theta^{-}) - Q(s, a; \theta) \big)^2 \Big]
+++++
+
+=== Deep Q-Network
+
+* DQN 還提出兩項創新：Experience replay 、 Periodically updated target
+* Experience replay 是在訓練的過程中，將所有 episodes stem:[(s_t, a_t, r_t, s_{t+1})] 記憶下來，每完成一次迴圈後隨機取一個以前的 episode 並訓練之
+* Periodically updated target 是指訓練過程中維護兩個決策網路，平時使用鎖死決策網路參數 stem:[\pi]，同時不斷訓練另一個決策網路 stem:[\pi']，每固定 stem:[C] 步才更新一次決策網路 stem:[\pi \leftarrow \pi']
+
+=== 綜合 TD 及蒙地卡羅法
+
+|===
+| stem:[n] | stem:[G_t] | 備註
+
+| 1 | stem:[G_t^{(1)} = r_{t+1} + \gamma V(s_{t+1})] | TD learning
+
+| 2 | stem:[G_t^{(2)} = r_{t+1} + \gamma r_{t+2} + \gamma^2 V(s_{t+2})] |
+
+| stem:[\infty] | stem:[G_t^{(\infty)} = r_{t+1} + \gamma r_{t+2} + \gamma^2 r_{t+3} + \cdots] | MC estimation
+
+|===
+
+=== 綜合 TD 及蒙地卡羅法
+
+image:https://lilianweng.github.io/lil-log/assets/images/TD_MC_DP_backups.png[各種方式比較]
+
+== Policy gradient
+
+* 不同於和前面提到的 DQN 等基於價值函數的模型，policy gradient 直接訓練決策函數本身
+* 令 stem:[\pi_\theta] 爲使用 stem:[\theta] 參數的決策模型，我們定義這個模型的評分 stem:[\mathcal{J}(\theta)]，下列公式的 stem:[d_{\pi_\theta}] 爲馬可夫鏈的 stationary distribution
+
+[stem]
+++++
+\begin{aligned}
+\mathcal{J}(\theta) &= \sum_{s \in \mathcal{S}} d_{\pi_\theta}(s) V_{\pi_\theta}(s) \\
+&= \sum_{s \in \mathcal{S}} \Big( d_{\pi_\theta}(s) \sum_{a \in \mathcal{A}} \pi(a \vert s, \theta) Q_\pi(s, a) \Big)
+\end{aligned}
+++++
+
+=== 策略函數梯度
+
+[stem]
+++++
+\begin{aligned}
+\nabla \mathcal{J}(\theta) &= \sum_{s \in \mathcal{S}} d(s) \sum_{a \in \mathcal{A}} \nabla \pi(a \vert s; \theta) Q_\pi(s, a) \\
+&= \sum_{s \in \mathcal{S}} d(s) \sum_{a \in \mathcal{A}} \pi(a \vert s; \theta) \frac{\nabla \pi(a \vert s; \theta)}{\pi(a \vert s; \theta)} Q_\pi(s, a) \\
+& = \sum_{s \in \mathcal{S}} d(s) \sum_{a \in \mathcal{A}} \pi(a \vert s; \theta) \nabla \ln \pi(a \vert s; \theta) Q_\pi(s, a) \\
+& = \mathbb{E}_{\pi_\theta} [\nabla \ln \pi(a \vert s; \theta) Q_\pi(s, a)]
+\end{aligned}
+++++
+
+=== REINFORCE 演算法
+
+1. 隨機初始化決策模型數 stem:[\theta]
+2. 執行一次狀態轉移，假設目前已經執行 stem:[T] 步，可得序列 stem:[s_1, a_1, r_2, s_2, a_2, \cdots, s_T]
+3. for t = 1, ..., T
+  a. 計算第 t 步的長期報酬 stem:[G_t]
+  b. 更新參數 stem:[\theta \leftarrow \theta + \alpha \gamma^t G_t \nabla \ln \pi (a_t | s_t, \theta)]
+4. 重複 2、3 步
+
+注意上述的演算法並不訓練 stem:[Q(s, a)]
+
+=== Actor-Critic 演算法
+
+Actor-critic 綜合 value-based 及 policy-based 的做法，訓練價值模型 stem:[Q(a|s;w)]/stem:[V(s;w)] 同時訓練決策模型 stem:[\pi(a|s;\theta)]。
+
+image:https://cdn-images-1.medium.com/max/1600/1*-GfRVLWhcuSYhG25rN0IbA.png[Actor-critic]
+
+=== Actor-Critic 演算法
+
+1. 狀態轉移：選擇決策 stem:[a] 後得新狀態 stem:[s'] 及報酬 stem:[r_t]，接着在新狀態 stem:[s'] 選擇一個決策 stem:[a']
+2. 更新決策參數 stem:[\theta \leftarrow \theta + \alpha_theta \gamma^t G_t \nabla \ln \pi (a_t | s_t, \theta)]
+3. 計算修正值 stem:[G_{t:t+1} = r_t + \gamma Q (s', a') - Q(s, a)]，並更新價值模型 stem:[w \leftarrow w + \alpha_w G_{t:t+1} \nabla_w Q(s, a; w)]
+4. 重複上述步驟
+
+=== A3C 演算法
+
+* A3C = Asynchronous Advantage Actor-Critic
+* A3C 是 Actor-critic 的改良，允許多個  worker 計算參數梯度 stem:[\nabla \theta, \nabla w]，每次迴圈合併每個 worker 的計算結果
+
+== Exploration-Exploitation 難題
+
+* Exploration-exploitation dilemma 是指演算法必須兼顧遍歷各種可能性，同時也必須強化較有前途的路徑。
+* link:https://lilianweng.github.io/lil-log/2018/01/23/the-multi-armed-bandit-problem-and-its-solutions.html#exploitation-vs-exploration[Multi-armed bandit] 便是對這問題中著名的例子
+
+=== 解決 Exploration-Exploitation
+
+- ε-greedy：玩家選擇策略有很小的 ε 機率選擇隨機策略，ε 可能是常數、或隨着時間遞減。
+- 溫度法：維護一個溫度係數 stem:[\tau]，越高隨機性越強，例如 stem:[p_i = e^{\frac{Q(s, a_i)}{1 + \tau}} / \sum_j e^{\frac{Q(s, a_j)}{1 + \tau}}]
+- Upper Confidence Bounds，每個策略計算一個信賴上界 stem:[Q(s, a) + U]，只要選擇這個策略的次數夠多， stem:[U] 會逐漸遞減、stem:[Q(s, a)] 也更精準
+
+== Q & A
