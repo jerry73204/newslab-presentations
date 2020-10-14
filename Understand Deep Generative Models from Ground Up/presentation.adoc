@@ -2,17 +2,20 @@
 :author: 林祥瑞
 :revealjs_theme: black
 :customcss: custom.css
+:data-uri:
+:stem: latexmath
+:revealjsdir: bower_components/reveal.js
 
-== Warning
+== Preface
 
-The lecture has 40 min time limit and we have length slides to consume. We may skip some pages.
+The lecture has 40 min time limit and we have length slides to consume. We may skip some pages if we have to :3.
 
 == Mathematical Foundations
 
-We will go thru these topics.
+In this section, we will have brief intro on information theory. Then we dive into these concepts that are fundamental to deep generative models.
 
-- Information Theory
 - KL-divergence
+- Jensen–Shannon divergence
 
 === Information Theory - Recap
 
@@ -64,7 +67,7 @@ H(X) \ \\
 
 - What if we encode a true distribution stem:[P] with artifact distribution stem:[Q]?
 - Encoding based on stem:[Q] can be thought of as an imperfect query for stem:[P].
-- The difference stem:[E_{x \sim P(x)}[\frac{1}{Q(x)}\] - E_{x \sim P(x)}[\frac{1}{P(x)}\]] is always non-negative due to Gibb's inequality.
+- The difference stem:[E_{x \sim P(x)}[\frac{1}{Q(x)}\] - E_{x \sim P(x)}[\frac{1}{P(x)}\]] is always non-negative due to link:https://en.wikipedia.org/wiki/Gibbs%27_inequality[Gibb's inequality].
 
 === Information Theory - Conditional Entropy
 
@@ -111,7 +114,7 @@ image:image/Entropy-mutual-information-relative-entropy-relation-diagram.svg[rel
 D_{\text{KL}} (P \parallel Q) = E_{x \sim P}[\log \frac{1}{Q(x)}] - E_{x \sim P}[\log \frac{1}{P(x)}]
 ++++
 
-- The divergence is non-negative due to Gibb's inequality.
+- The divergence is non-negative due to link:https://en.wikipedia.org/wiki/Gibbs%27_inequality[Gibb's inequality].
 
 === Kullback–Leibler Divergence - Interpretations
 
@@ -141,6 +144,12 @@ image:image/KL_JS_divergence.png[JK vs. JS divergence]
 
 [.small]#Reference: link:https://medium.com/@jonathan_hui/gan-wasserstein-gan-wgan-gp-6a1a2aa1b490[GAN — Wasserstein GAN & WGAN-GP]#
 
+=== Remarks
+
+- KL-_divergence_ should never be misnamed as KL-_metric_ or KL-_distance_. Since it is not symmetric, it does not fit the mathematical definition of metric.
+- stem:[D_{\text{KL}}(P \| Q)] could be infinite if stem:[P(x) \gt 0] and stem:[Q(x) = 0] for some stem:[x].
+- Both KL-div and JS-div does not respect the metric on support, leading to vanishing gradient.
+- We will introduce Watterstein metric to resolve these issues.
 === Conclusion
 
 - Understand basics of information theory and intuition behind KL-divergence.
@@ -334,6 +343,24 @@ image::image/progressive-gan.png[]
 
 [.small]#Reference: link:https://machinelearningmastery.com/introduction-to-progressive-growing-generative-adversarial-networks/[A Gentle Introduction to the Progressive Growing GAN - Jason Brownlee]#
 
+=== GAN Varants - CycleGAN
+
+image::image/cyclegan-example.png[]
+
+[.small]#Reference: link:https://hardikbansal.github.io/CycleGANBlog/[Understanding and Implementing CycleGAN in TensorFlow - Hardik Bansal , Archit Rathore ]#
+
+=== GAN Varants - CycleGAN
+
+image::image/img_translation.jpg[]
+
+[.small]#Reference: link:https://hardikbansal.github.io/CycleGANBlog/[Understanding and Implementing CycleGAN in TensorFlow - Hardik Bansal , Archit Rathore ]#
+
+=== GAN Varants - CycleGAN
+
+image::image/cyclegan.png[]
+
+[.small]#Reference: link:https://hardikbansal.github.io/CycleGANBlog/[Understanding and Implementing CycleGAN in TensorFlow - Hardik Bansal , Archit Rathore ]#
+
 === GAN Variants - The GAN Zoo
 
 Some random guy compile the published GANs in this link:https://deephunt.in/the-gan-zoo-79597dc8c347[list].
@@ -450,9 +477,15 @@ image::image/WGAN_algorithm.png[]
 
 - It maintains Lipschitz continuity by clipping weights! It's shown that there are side effects. 
 
-- Many improvements has been done, especially WGAN-GP.
+- Many improvements have been done, especially WGAN-GP.
 
 - No time for further explanation in this lecture. Here is the link:https://medium.com/@jonathan_hui/gan-wasserstein-gan-wgan-gp-6a1a2aa1b490[link] for your interest.
+
+=== Wasserstein GAN - Variants
+
+image:image/wgan-varants.png[]
+
+[.small]#Reference: link:http://yunshengb.com/wp-content/uploads/2018/03/03022018_Wasserstein_presentation.pdf[Theory and Applications of Wasserstein Distance - Yunsheng Bai]#
 
 === Conclusion
 
