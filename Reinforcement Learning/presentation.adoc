@@ -1,6 +1,9 @@
 = 強化學習簡介
 :Author: 林祥瑞
 :revealjs_theme: black
+:data-uri:
+:stem: latexmath
+:revealjsdir: bower_components/reveal.js
 
 == 參考文獻
 
