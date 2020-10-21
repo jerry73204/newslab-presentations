@@ -59,7 +59,7 @@ v_0 && \cdots && v_N
 \end{bmatrix}
 ++++
 
-Raising or lowing the index can be understood as matrix transpose.
+Raising or lowing the index can be understood as matrix transposition.
 
 === Tensor Contraction
 
@@ -189,9 +189,10 @@ image::image/conv_composition.svg[opts=inline]
 
 === Overview
 
-- CSPNet: A New Backbone that can Enhance Learning Capability of CNN (link:https://arxiv.org/abs/1911.11929[link])
-- Authored by Chien-Yao Wang and Hong-Yuan Mark Liao et al, same authors of YOLOv4.
-- YOLOv4 adopts this technique. It reduces up to 19% computation power at the same top-1 accuracy.
+- CSPNet: A New Backbone that can Enhance Learning Capability of CNN (link:https://arxiv.org/abs/1911.11929[paper link])
+- Authored by Chien-Yao Wang and Hong-Yuan Mark Liao et al. Same authors of YOLOv4 paper.
+- Adopted by YOLOv4.
+- It reduces 19% computation at the same top-1 accuracy for DenseNet, and reduces 22% computation for ResNeXt.
 
 === Benchmark
 
