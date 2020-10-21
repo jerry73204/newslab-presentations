@@ -1,0 +1,37 @@
+.reveal .title h1 {
+    font-size: 1.5em;
+}
+
+.reveal .title p {
+    font-size: 1.0em;
+}
+
+
+.reveal section h2 {
+    font-size: 0.9em;
+}
+
+.reveal section .paragraph {
+    font-size: 0.8em;
+}
+
+.reveal section .stemblock .content {
+    font-size: 0.6em;
+}
+
+.reveal section .ulist {
+    font-size: 0.8em;
+}
+
+.reveal section .stemblock .content {
+    font-size: 0.6em;
+}
+
+.reveal section .small {
+    font-size: 0.4em;
+}
+
+.reveal p {
+    margin: 10px 0;
+    line-height: 1;
+}
