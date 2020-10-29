@@ -35,7 +35,7 @@ Question: Is there a global principle governing the variants?
 
 - Vector is regarded as a tensor with single superscript stem:[v^i].
 - Matrix is regarded as a tensor with one subscript and one superscript stem:[M_j^i].
-- The matrix product can be denoted in Einstein notation: stem:[y^j = M_i^j x^j].
+- The matrix product can be denoted in Einstein notation: stem:[y^j = M_i^j x^i].
 
 === Superscript vs. Subscript
 
